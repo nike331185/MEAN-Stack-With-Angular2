@@ -4,7 +4,7 @@ const User = require('../models/user');
 module.exports = (router) =>{
 
     router.post('/register',(req, res) => {
-
+        console.log("11111111111111111111111111111111");
         if(!req.body.email){
             res.json({ success: false, message: 'You must provide an e-mail'})
         } else{
@@ -44,6 +44,7 @@ module.exports = (router) =>{
                                 }
                             }
                         } else{
+                            console.log("成功");
                             res.json({ success: true, message: 'Account registered'});
                         }
                     });
@@ -52,5 +53,44 @@ module.exports = (router) =>{
             
         }
     });
+
+    router.get('/checkEmail/:email', (req, res) => {
+        if(!req.params.email) {
+            res.json({ success: false, message: 'E-mail was not provided'});
+        } else{
+            User.findOne({ email: req.params.email}, (err, email) =>{
+                if(err) {
+                    res.json({ success: false, message: err});
+                } else {
+                    if(email) {
+                        res.json({ success: false, message: 'E-mail is already taken' });
+                    }
+                    else{
+                        res.json({ success:  true, message: 'E-mail is available' });
+                    }
+                }
+            });
+        }
+    });
+    router.get('/checkUsername/:username', (req, res) => {
+        if(!req.params.username) {
+            res.json({ success: false, message: 'Username was not provided'});
+        } else{
+            User.findOne({ username: req.params.username}, (err, user) =>{
+                if(err) {
+                    res.json({ success: false, message: err});
+                } else {
+                    if(user) {
+                        res.json({ success: false, message: 'Username is already taken' });
+                    }
+                    else{
+                        res.json({ success:  true, message: 'Username is available' });
+                    }
+                }
+            });
+        }
+    });
+    
+    
     return router;
 }

@@ -9,6 +9,7 @@ const appRoutes: Routes = [
   // { path: '**', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'dashboard', component: DashboardComponent },
+  { path: '**', component: HomeComponent } // "Catch-All" Route
 ];
 
 @NgModule({

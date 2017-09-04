@@ -5,7 +5,10 @@ const mongoose = require('mongoose'); // Node Tool for MongoDB
 const config = require('./config/database'); // Mongoose Config
 const path = require('path');
 const authentication = require('./routes/authentication')(router); 
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+
+const cors = require('cors');
+
 mongoose.Promise = global.Promise;
 
 mongoose.connect(config.uri, {
@@ -19,6 +22,11 @@ mongoose.connect(config.uri, {
   }
 });
 
+// Middleware
+app.use(cors({
+  origin: 'http://localhost:4200',
+}))
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -30,6 +38,6 @@ app.get('/', (req, res) => {
 });
 
 // Start Server: Listen on port 8080
-app.listen(8001, () => {
-  console.log('Listening on port 8000');
+app.listen(8000, () => {
+  console.log('Listening on port 8001');
 });
