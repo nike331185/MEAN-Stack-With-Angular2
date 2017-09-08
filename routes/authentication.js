@@ -1,9 +1,9 @@
 const User = require('../models/user');
-
-
+const jwt = require('jsonwebtoken');
+const config = require('../config/database')
 module.exports = (router) =>{
 
-    router.post('/register',(req, res) => {
+    router.post('/register',(req, res) => {   //user註冊
         console.log("11111111111111111111111111111111");
         if(!req.body.email){
             res.json({ success: false, message: 'You must provide an e-mail'})
@@ -54,7 +54,7 @@ module.exports = (router) =>{
         }
     });
 
-    router.get('/checkEmail/:email', (req, res) => {
+    router.get('/checkEmail/:email', (req, res) => {   //檢查信箱存在
         if(!req.params.email) {
             res.json({ success: false, message: 'E-mail was not provided'});
         } else{
@@ -72,7 +72,7 @@ module.exports = (router) =>{
             });
         }
     });
-    router.get('/checkUsername/:username', (req, res) => {
+    router.get('/checkUsername/:username', (req, res) => {  //檢查帳號存在
         if(!req.params.username) {
             res.json({ success: false, message: 'Username was not provided'});
         } else{
@@ -90,6 +90,70 @@ module.exports = (router) =>{
             });
         }
     });
+
+    router.post('/login',( req, res) => {    //登入
+        if(!req.body.username) {
+            res.json({ success: false, message: 'No username was provided'});
+        }
+        else {
+            if(!req.body.password) {
+                res.json({ success: false, message: 'No password was provided'});
+            } else {
+                User.findOne({ username: req.body.username.toLowerCase() }, (err, user) =>{
+                    if(err){
+                        res.json({ success: false, message: err });
+                    }
+                    else {
+                        if(!user) {
+                            res.json({ success: false, message: 'Username not found. '});
+                        }
+                        else{
+                            const validPassword = user.comparePassword(req.body.password);
+                            console.log(validPassword)
+                            if(!validPassword) {
+                                res.json({ success: false, message: 'Password invalid '});
+                            } else {
+                                const token = jwt.sign({ userId: user._id }, config.secret, { expiresIn: '24h' });
+                                console.log("token",token);
+                                res.json({ success: true, message: 'Success', token: token, user: { username: user.username}});
+                            }
+
+                        }
+                    }
+                })
+            }
+        }
+    })
+
+    router.use((req, res, next) =>{
+        const token = req.headers['authorization'];
+        if(!token) {
+            res.json({ success:false, message: 'No token provide'});
+        } else {
+            jwt.verify(token, config.secret, (err, decode) => {
+                if (err) {
+                    res.json({ success:false, message: 'Token invalid: ' + err });
+                } else {
+                    req.decode = decode ;
+                    next();
+                }
+            })
+        }
+    });
+    
+    router.get('/profile',( req,res) =>{
+        User.findOne({ _id: req.decode.userId }).select('username email').exec((err, user) =>{
+            if(err) {
+                res.json({ success: false, message: err });
+            } else {
+                if(!user){
+                    res.json({ success: false, message: 'User not found'})
+                } else {
+                    res.json({ success: true, user: user });
+                }
+            }
+        })
+    })
     
     
     return router;
